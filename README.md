@@ -14,7 +14,7 @@ Um codificador PNG sem perdas, sem dependências, compacto e simples, que gera i
 
 **data** é um array com as amostras da imagem no formato RGBA. Se a imagem não possuir transparência o canal alpha deve ser preenchido com o valor 255.
 
-**width** é a largura da inagem.
+**width** é a largura da imagem.
 
 **height** é a altura da imagem.
 
