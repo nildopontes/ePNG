@@ -9,7 +9,7 @@ class ePNG {
       for(i = 3; i < this.data.length; i += 4){
          if(this.data[i] != 255) qtdAlpha++;
       }
-      this.colorType = (qtdAlpha == 0) ? 2 : 6;
+      this.colorType = qtdAlpha == 0 ? 2 : 6;
       if(this.colorType == 2){
          for(i = 3; i < this.data.length; i += 4){
             this.data[i] = undefined;
@@ -27,7 +27,7 @@ class ePNG {
       this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
       this.idat = null;
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
-      this.filter = ([0, 1, 2, 3, 4].includes(filter)) ? filter : 5;
+      this.filter = [0, 1, 2, 3, 4].includes(filter) ? filter : 5;
       this.scanlines = new Array(h);
       this.buffer = new Uint8Array((w * h * this.pixelSize) + h);
       this.blob = null;
@@ -61,20 +61,19 @@ class ePNG {
             count++;
          }
       }
-      let filter = this.filter, aux = [];
       for(i = this.h - 1; i >= 0; i--){
          if(this.filter == 5){
-            let minSum = Number.MAX_VALUE;
+            let minSum = Number.MAX_VALUE, realFilter, aux = [];
             for(let ft = 0; ft < 5; ft++){
                aux.push(this.filterScanline(ft, i, true));
                if(aux[aux.length - 1][1] < minSum){
                   minSum = aux[aux.length - 1][1];
-                  filter = ft;
+                  realFilter = ft;
                }
             }
-            this.scanlines[i] = aux[filter][0];
+            this.scanlines[i] = aux[realFilter][0];
          }else{
-            this.scanlines[i] = this.filterScanline(filter, i);
+            this.scanlines[i] = this.filter == 0 ? this.scanlines[i] : this.filterScanline(this.filter, i);
          }
       }
       count = 0;
@@ -87,52 +86,46 @@ class ePNG {
       return this.buffer;
    }
    paeth(a, b, c){
-      let pa = Math.abs(b - c);
-      let pb = Math.abs(a - c);
-      let pc = Math.abs(a + b - c - c);
+      let pa = Math.abs(b - c), pb = Math.abs(a - c), pc = Math.abs(a + b - c - c);
       if(pb < pa){
          a = b;
          pa = pb;
       }
-      return (pc < pa) ? c : a;
+      return pc < pa ? c : a;
    }
-   filterScanline(type, scanlineId, returnSum){
-      if(this.scanlines[scanlineId] === undefined) return console.error(`Scanline ${scanlineId} non-existent.`);
-      let filtered = new Uint8Array(this.widthScanline), i, rawA, rawB, rawC;
+   filterScanline(type, i, returnSum){
+      if(this.scanlines[i] === undefined) return console.error(`Scanline ${i} non-existent.`);
+      let filtered = new Uint8Array(this.widthScanline), j, rawA, rawB, rawC;
       filtered[0] = type;
       switch(type){
-         case 0:{
-            filtered = this.scanlines[scanlineId];
-            break;
-         }
          case 1:{
-            for(i = 1; i < this.widthScanline; i++){
-               (i < (this.pixelSize + 1)) ? filtered[i] = this.scanlines[scanlineId][i] : filtered[i] = this.scanlines[scanlineId][i] - this.scanlines[scanlineId][i - this.pixelSize];
+            for(j = 1; j < this.widthScanline; j++){
+               j < this.pixelSize + 1 ? filtered[j] = this.scanlines[i][j] : filtered[j] = this.scanlines[i][j] - this.scanlines[i][j - this.pixelSize];
             }
             break;
          }
          case 2:{
-            if(scanlineId == 0){
-               filtered = this.scanlines[scanlineId];
+            if(i == 0){
+               filtered = this.scanlines[i];
             }else{
-               for(i = 1; i < this.widthScanline; i++) filtered[i] = this.scanlines[scanlineId][i] - this.scanlines[scanlineId - 1][i];
+               for(j = 1; j < this.widthScanline; j++) filtered[j] = this.scanlines[i][j] - this.scanlines[i - 1][j];
             }
             break;
          }
          case 3:{
-            for(i = 1; i < this.widthScanline; i++){
-               (i > this.pixelSize) ? rawA = this.scanlines[scanlineId][i - this.pixelSize] : rawA = 0;
-               (scanlineId > 0) ? rawB = this.scanlines[scanlineId - 1][i] : rawB = 0;
-               filtered[i] = this.scanlines[scanlineId][i] - Math.floor((rawA + rawB) / 2);
+            for(j = 1; j < this.widthScanline; j++){
+               rawA = j > this.pixelSize ? this.scanlines[i][j - this.pixelSize] : 0;
+               rawB = i > 0 ? this.scanlines[i - 1][j] : 0;
+               filtered[j] = this.scanlines[i][j] - Math.floor((rawA + rawB) / 2);
             }
             break;
          }
          case 4:{
-            for(let i = 1; i < this.widthScanline; i++){
-               (i > this.pixelSize) ? rawA = this.buffer[scanlineId][i - this.pixelSize] : rawA = 0;
-               (scanlineId > 0) ? rawB = this.scanlines[scanlineId - 1][i] : rawB = 0;
-               (i > this.pixelSize && scanlineId > 0) ? rawC = this.scanlines[scanlineId - 1][i - this.pixelSize] : rawC = 0;
-               filtered[i] = this.scanlines[scanlineId][i] - this.paeth(rawA, rawB, rawC);
+            for(j = 1; j < this.widthScanline; j++){
+               rawA = j > this.pixelSize ? this.scanlines[i][j - this.pixelSize] : 0;
+               rawB = i > 0 ? this.scanlines[i - 1][j] : 0;
+               rawC = j > this.pixelSize && i > 0 ? this.scanlines[i - 1][j - this.pixelSize] : 0;
+               filtered[j] = this.scanlines[i][j] - this.paeth(rawA, rawB, rawC);
             }
          }
       }
