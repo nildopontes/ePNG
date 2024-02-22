@@ -27,7 +27,7 @@ class ePNG {
       this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
       this.idat = null;
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
-      this.filter = ([0, 1, 2, 3, 4, 5].includes(filter)) ? filter : 5;
+      this.filter = ([0, 1, 2, 3, 4].includes(filter)) ? filter : 5;
       this.scanlines = new Array(h);
       this.buffer = new Uint8Array((w * h * this.pixelSize) + h);
       this.blob = null;
