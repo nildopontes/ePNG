@@ -73,7 +73,7 @@ class ePNG {
             }
             this.scanlines[i] = aux[realFilter][0];
          }else{
-            this.scanlines[i] = this.filter == 0 ? this.scanlines[i] : this.filterScanline(this.filter, i);
+            this.scanlines[i] = this.filterScanline(this.filter, i);
          }
       }
       count = 0;
@@ -98,6 +98,10 @@ class ePNG {
       let filtered = new Uint8Array(this.widthScanline), j, rawA, rawB, rawC;
       filtered[0] = type;
       switch(type){
+         case 0:{
+            filtered = this.scanlines[i];
+            break;
+         }
          case 1:{
             for(j = 1; j < this.widthScanline; j++){
                j < this.pixelSize + 1 ? filtered[j] = this.scanlines[i][j] : filtered[j] = this.scanlines[i][j] - this.scanlines[i][j - this.pixelSize];
