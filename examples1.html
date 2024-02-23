@@ -1,0 +1,36 @@
+<html><head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+      <title>Demo ePNG</title>
+      <script src="epng.js"></script>
+   </head>
+   <body>
+      <h1>Imagem gerada com ePNG</h1>
+      <script>
+         function circles(w, h, filter){
+            let colors = [], center = [Math.ceil(w / 2), Math.ceil(h / 2)];
+            var d = [];
+            for(let c = 0; c < Math.floor(Math.sqrt(w ** 2 + h ** 2)); c++) colors.push([parseInt(Math.random() * 255, 10), parseInt(Math.random() * 255, 10), parseInt(Math.random() * 255, 10), 254]);
+            for(let i = 0; i < h; i++){
+               for(let j = 0; j < w; j++){
+                  let distance = Math.floor(Math.sqrt(((i - center[0]) ** 2) + ((j - center[1]) ** 2)));
+                  d.push(...colors[distance]);
+               }
+            }
+            let t0 = performance.now();
+            var png = new ePNG(d, w, h, filter);
+            png.encode().then(b => {
+               let url = window.URL.createObjectURL(b);
+               let size = `${(b.size / 1024).toFixed(2)} kbytes`;
+               let measures = `${w} X ${h} pixels`;
+               let time = `${parseInt(performance.now() - t0, 10)} milissegundos`;
+               let filtering = [0,1,2,3,4,'Dinâmico'][png.filter];
+               document.body.innerHTML += `<br><hr><br><br><span>Tamanho: ${size}</span><br><span>Medidas: ${measures}</span><br><span>Filtro aplicado: ${filtering}</span><br><span>Tempo decorrido: ${time}</span><br><img src="${url}">`;
+            });
+         }
+         for(let i = 0; i <= 5; i++){
+            circles(800, 800, i);
+         }
+      </script>
+   </body>
+</html>
