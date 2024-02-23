@@ -1,6 +1,8 @@
 # ePNG
 Um codificador PNG sem perdas, sem dependências, compacto e simples, que gera imagens RGB ou RGBA de 8 bits.
 
+![Imagem ilustrativa gerada com ePNG](img.png)
+
 #### Exemplo de uso
 
     let png = new ePNG(data, width, height [, filter]);
