@@ -5,18 +5,10 @@ class ePNG {
       if(data.length != (w * h * 4)) return console.error(`Incomplete samples.`);
       this.data = data;
       this.crcTable = new Array();
-      let qtdAlpha = 0, i;
-      for(i = 3; i < this.data.length; i += 4){
-         if(this.data[i] != 255) qtdAlpha++;
-      }
-      this.colorType = qtdAlpha == 0 ? 2 : 6;
-      if(this.colorType == 2){
-         for(i = 3; i < this.data.length; i += 4){
-            this.data[i] = undefined;
-         }
-         this.data = this.data.filter(sample => sample !== undefined);
-      }
-      this.pixelSize = [,,3,,,,4][this.colorType];
+      this.trns = null;
+      this.palette = null;
+      this.colorStatistics();
+      this.pixelSize = [1,,3,1,2,,4][this.colorType];
       this.widthScanline =  (w * this.pixelSize) + 1;
       this.signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
       this.ihdr = new Uint8Array(25);
@@ -27,10 +19,113 @@ class ePNG {
       this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
       this.idat = null;
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
-      this.filter = [0, 1, 2, 3, 4].includes(filter) ? filter : 5;
+      this.filter = this.colorType == 3 ? 0 : ([0, 1, 2, 3, 4].includes(filter) ? filter : 5);
       this.scanlines = new Array(h);
       this.buffer = new Uint8Array((w * h * this.pixelSize) + h);
       this.blob = null;
+   }
+   indexOf(colors, int32){
+      let iterator = colors.keys();
+      for(let i = 0; i < colors.size; i++){
+         if(iterator.next().value == int32) return i;
+      }
+      return null;
+   }
+   colorStatistics(){
+      let qtdAlpha = 0, i, colors = new Set(), transparentColors = new Set(), qtdGrayscale = 0, qtdTransparent = 0;
+      for(i = 0; i < this.data.length; i += 4){
+         let int32 = this.dump32bit(this.data[i], this.data[i + 1], this.data[i + 2], this.data[i + 3]);
+         colors.add(int32);
+         if(this.data[i + 3] != 255) qtdAlpha++;
+         if(this.data[i + 3] == 0){
+            transparentColors.add(int32);
+            qtdTransparent++;
+         }
+         if(this.data[i] == this.data[i + 1] && this.data[i + 1] == this.data[i + 2]) qtdGrayscale++;
+      }
+      if(qtdGrayscale == this.w * this.h){
+         this.colorType = qtdAlpha == qtdTransparent && transparentColors.size < 2 ? 0 : 4;
+      }else{
+         this.colorType = colors.size < 257 ? 3 : ((qtdAlpha == qtdTransparent && transparentColors.size < 2) ? 2 : 6);
+      }
+      if(transparentColors.size == 1 && this.colorType < 3 && this.indexOf(colors, transparentColors.keys().next().value + 255) != -1) this.colorType += 4;
+      switch(this.colorType){
+         case 0:{
+            for(i = 1; i < this.data.length; i += 4){
+               this.data[i] = undefined;
+               this.data[i + 1] = undefined;
+               this.data[i + 2] = undefined;
+            }
+            break;
+         }
+         case 2:{
+            for(i = 3; i < this.data.length; i += 4){
+               this.data[i] = undefined;
+            }
+            break;
+         }
+         case 3:{
+            for(i = 0; i < this.data.length; i += 4){
+               let int32 = this.dump32bit(this.data[i], this.data[i + 1], this.data[i + 2], this.data[i + 3]);
+               this.data[i] = this.indexOf(colors, int32);
+               this.data[i + 1] = undefined;
+               this.data[i + 2] = undefined;
+               this.data[i + 3] = undefined;
+            }
+            this.addPLTE(colors);
+            if(qtdAlpha > 0) this.addtRNS(colors);
+            break;
+         }
+         case 4:{
+            for(i = 1; i < this.data.length; i += 4){
+               this.data[i] = undefined;
+               this.data[i + 1] = undefined;
+            }
+         }
+      }
+      if(transparentColors.size == 1 && this.colorType < 3) this.addtRNS(transparentColors.keys().next().value);
+      this.data = this.data.filter(sample => sample !== undefined);
+   }
+   addtRNS(trns){
+      switch(this.colorType){
+         case 0:{
+            this.trns = new Uint8Array(14);
+            this.trns.set([2, 116, 82, 78, 83, 0, this.set32bit(trns).slice(0, 1)], 3);
+            this.trns.set(this.set32bit(this.getCRC32(this.trns.slice(4, 10))), 10);
+            break;
+         }
+         case 2:{
+            this.trns = new Uint8Array(18);
+            let rgb = this.set32bit(trns);
+            this.trns.set([6, 116, 82, 78, 83, 0, rgb[0], 0, rgb[1], 0, rgb[2]], 3);
+            this.trns.set(this.set32bit(this.getCRC32(this.trns.slice(4, 14))), 14);
+            break;
+         }
+         case 3:{
+            let iterator = trns.keys();
+            this.trns = new Uint8Array(trns.size + 12);
+            this.trns.set(this.set32bit(trns.size));
+            this.trns.set([116, 82, 78, 83], 4);
+            for(let i = 0; i < trns.size; i++){
+               this.trns[8 + i] = this.set32bit(iterator.next().value).slice(3);
+            }
+            this.trns.set(this.set32bit(this.getCRC32(this.trns.slice(4, 8 + trns.size))), 8 + trns.size);
+            break;
+         }
+      }
+   }
+   addPLTE(colors){
+      this.palette = new Uint8Array(colors.size * 3 + 12);
+      this.palette.set(this.set32bit(colors.size * 3));
+      this.palette.set([80, 76, 84, 69], 4);
+      let iterator = colors.keys();
+      for(let i = 0; i < colors.size; i++){
+         this.palette.set(this.set32bit(iterator.next().value).slice(0, 3), 8 + i * 3);
+      }
+      this.palette.set(this.set32bit(this.getCRC32(this.palette.slice(4, 8 + colors.size * 3))), 8 + colors.size * 3);
+   }
+   dump32bit(a, b, c, d){
+      return Number((BigInt(a) << 24n) + (BigInt(b) << 16n) + (BigInt(c) << 8n) + BigInt(d));
    }
    set32bit(value){
      let buffer = new Uint8Array(4);
@@ -164,8 +259,8 @@ class ePNG {
             this.idat.set([73, 68, 65, 84], 4);
             this.idat.set(cp, 8);
             this.idat.set(this.set32bit(this.getCRC32(this.idat.slice(4, 8 + cp.length))), cp.length + 8);
-               this.blob = new Blob([this.signature, this.ihdr, this.idat, this.iend], {type: "image/png"});
-               resolve(this.blob);
+            this.blob = new Blob([this.signature, this.ihdr, this.palette || [], this.trns || [], this.idat, this.iend], {type: "image/png"});
+            resolve(this.blob);
          });
       });
    }
