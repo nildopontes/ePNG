@@ -17,15 +17,11 @@
                   d.push(...colors[color]);
                }
             }
-            let t0 = performance.now();
-            var png = new ePNG(d, w, h, filter);
+            let t0 = Date.now();
+            let png = new ePNG(d, w, h, filter);
             png.encode().then(b => {
                let url = window.URL.createObjectURL(b);
-               let size = `${(b.size / 1024).toFixed(2)} kbytes`;
-               let measures = `${w} X ${h} pixels`;
-               let time = `${parseInt(performance.now() - t0, 10)} milissegundos`;
-               let filtering = [0,1,2,3,4,'Dinâmico'][png.filter];
-               document.body.innerHTML += `<br><hr><br><br><span>Tamanho: ${size}</span><br><span>Medidas: ${measures}</span><br><span>Filtro aplicado: ${filtering}</span><br><span>Tempo decorrido: ${time}</span><br><img src="${url}">`;
+               document.body.innerHTML += `<br><hr><br><br><span>Tamanho: ${(b.size / 1024).toFixed(2)} kbytes</span><br><span>Medidas: ${w} X ${h} pixels</span><br><span>Filtro aplicado: ${[0,1,2,3,4,'Dinâmico'][png.filter]}</span><br><span>Tempo decorrido: ${Date.now() - t0} milissegundos</span><br><img src="${url}">`;
             });
          }
          lines(800, 800);
