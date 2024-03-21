@@ -2,6 +2,7 @@
 Um codificador PNG sem perdas, sem dependências, compacto e simples, que gera imagens de 8 bits por amostra. Todos os 5 tipos de cores (GRAYSCALE, RGB, PALETTE, GRAYSCALE ALPHA, RGBA) são suportados e o mesmo é escolhido com base na estatística das amostras.
 
 ![Imagem ilustrativa gerada com ePNG](img.png)
+Imagem ilustrativa gerada com ePNG
 
 #### Exemplo de uso
 
@@ -24,9 +25,9 @@ Um codificador PNG sem perdas, sem dependências, compacto e simples, que gera i
 
 O método **encode()** retorna uma Promise que resolve com um Blob contendo os dados binários da imagem, que pode ser transmitido pela rede ou exibido na própria página.
 
-O codificador escolhe o tipo de cor com base na análise do canal alpha nas amostras passadas para o construtor. Imagens com todas as amostras do canal alpha igual a 255 serão RGB, caso contrário será RGBA. A compressão Zlib é fornecida pela Compression Streams API. Esta API Javascript conta com ampla compatibilidade nos navegadores modernos.
+O codificador escolhe o tipo de cor com base na análise do canal alpha, quantidade e tipo de corea nas amostras passadas para o construtor. A compressão Zlib é fornecida pela Compression Streams API. Esta API Javascript conta com ampla compatibilidade nos navegadores modernos.
 
-Veja um exemplo comparativo de resultados com tipos de filtro diferentes. Leve em conta que o tipo de imagem influencia diretamente na eficiencia  da filtragem e consequente compactação.
+Veja um exemplo comparativo de resultados com tipos de filtro diferentes. Leve em conta que o tipo de imagem influencia diretamente na eficiência da filtragem e consequente compactação.
 
 [Exemplos comparativos](https://nildopontes.com.br/ePNG/examples1.html)
 
