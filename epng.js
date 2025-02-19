@@ -232,10 +232,8 @@ class ePNG {
    }
    getCRC32(data){
       if(this.crcTable.length == 0) this.makeCRCTable();
-      var crc = -1;
-      for(let i = 0; i < data.length; i++){
-         crc = (crc >>> 8) ^ this.crcTable[(crc ^ data[i]) & 255];
-      }
+      let crc = -1;
+      data.map(v => crc = (crc >>> 8) ^ this.crcTable[(crc ^ v) & 255]);
       return (crc ^ (-1)) >>> 0;
    }
    compress(input){
