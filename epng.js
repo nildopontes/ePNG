@@ -128,12 +128,7 @@ class ePNG {
       return Number((BigInt(a) << 24n) + (BigInt(b) << 16n) + (BigInt(c) << 8n) + BigInt(d));
    }
    set32bit(value){
-     let buffer = new Uint8Array(4);
-     buffer[0] = (value >> 24) & 255;
-     buffer[1] = (value >> 16) & 255;
-     buffer[2] = (value >>  8) & 255;
-     buffer[3] = value & 255;
-     return buffer;
+     return new Uint8Array([(value >> 24) & 255, (value >> 16) & 255, (value >>  8) & 255, value & 255]);
    }
    makeCRCTable(){
       let c;
