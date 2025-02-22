@@ -5,8 +5,6 @@ class ePNG {
       if(data.length != (w * h * 4)) return console.error(`Incomplete samples.`);
       this.data = data;
       this.crcTable = new Array();
-      this.trns = null;
-      this.palette = null;
       this.colorStatistics();
       this.pixelSize = [1,,3,1,2,,4][this.colorType];
       this.widthScanline =  (w * this.pixelSize) + 1;
@@ -17,12 +15,10 @@ class ePNG {
       this.ihdr.set(this.set32bit(h), 12);
       this.ihdr.set([8, this.colorType, 0, 0, 0], 16);
       this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
-      this.idat = null;
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
       this.filter = this.colorType == 3 ? 0 : ([0, 1, 2, 3, 4].includes(filter) ? filter : 5);
       this.scanlines = new Array(h);
       this.buffer = new Uint8Array((w * h * this.pixelSize) + h);
-      this.blob = null;
    }
    indexOf(colors, int32){
       let iterator = colors.keys();
