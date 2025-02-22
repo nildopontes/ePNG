@@ -9,11 +9,7 @@ class ePNG {
       this.pixelSize = [1,,3,1,2,,4][this.colorType];
       this.widthScanline =  (w * this.pixelSize) + 1;
       this.signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
-      this.ihdr = new Uint8Array(25);
-      this.ihdr.set([0, 0, 0, 13, 73, 72, 68, 82]);
-      this.ihdr.set(this.set32bit(w), 8);
-      this.ihdr.set(this.set32bit(h), 12);
-      this.ihdr.set([8, this.colorType, 0, 0, 0], 16);
+      this.ihdr = new Uint8Array([0, 0, 0, 13, 73, 72, 68, 82, ...this.set32bit(w), ...this.set32bit(h), 8, this.colorType, 0, 0, 0, 0, 0, 0, 0]);
       this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
       this.filter = this.colorType == 3 ? 0 : ([0, 1, 2, 3, 4].includes(filter) ? filter : 5);
