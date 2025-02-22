@@ -4,7 +4,7 @@ class ePNG {
       this.w = w;
       if(data.length != (w * h * 4)) return console.error(`Incomplete samples.`);
       this.data = data;
-      this.crcTable = new Array();
+      this.makeCRCTable();
       this.colorStatistics();
       this.pixelSize = [1,,3,1,2,,4][this.colorType];
       this.widthScanline =  (w * this.pixelSize) + 1;
@@ -127,14 +127,15 @@ class ePNG {
      return new Uint8Array([(value >> 24) & 255, (value >> 16) & 255, (value >>  8) & 255, value & 255]);
    }
    makeCRCTable(){
-      let c;
+      let c, a = [];
       for(var n = 0; n < 256; n++){
          c = n;
          for(var k = 0; k < 8; k++){
             c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
          }
-         this.crcTable.push(c);
+         a.push(c);
       }
+      this.crcTable = a;
    }
    filter0(){
       let i, j, count = 0;
@@ -227,7 +228,6 @@ class ePNG {
       }
    }
    getCRC32(data){
-      if(this.crcTable.length == 0) this.makeCRCTable();
       let crc = -1;
       data.map(v => crc = (crc >>> 8) ^ this.crcTable[(crc ^ v) & 255]);
       return (crc ^ (-1)) >>> 0;
