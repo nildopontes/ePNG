@@ -20,11 +20,11 @@
                }
             }
             dt = d.slice();
-            let t0 = Date.now();
+            let t0 = performance.now();
             let png = new ePNG(dt, w, h, filter);
             png.encode().then(b => {
                let url = window.URL.createObjectURL(b);
-               document.body.innerHTML += `<br><hr><br><br><span>Tamanho: ${(b.size / 1024).toFixed(2)} kbytes</span><br><span>Medidas: ${w} X ${h} pixels</span><br><span>Filtro aplicado: ${[0,1,2,3,4,'Dinâmico'][png.filter]}</span><br><span>Tempo decorrido: ${Date.now() - t0} milissegundos</span><br><img src="${url}">`;
+               document.body.innerHTML += `<br><hr><br><br><span>Tamanho: ${parseInt(b.size / 1024, 10)} KB</span><br><span>Medidas: ${w} X ${h} pixels</span><br><span>Filtro aplicado: ${[0,1,2,3,4,'Dinâmico'][png.filter]}</span><br><span>Tempo decorrido: ${parseInt(performance.now() - t0, 10)} milissegundos</span><br><img src="${url}">`;
             });
          }
          for(let i = 5; i >= 0; i--){
