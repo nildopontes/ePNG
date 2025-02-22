@@ -8,8 +8,7 @@
       <h1>Imagem gerada com ePNG</h1>
       <script>
          function lines(w, h, filter){
-            let colors = [], center = [Math.ceil(w / 2), Math.ceil(h / 2)];
-            var d = [];
+            let colors = [], d = [];
             for(let c = 0; c < 256; c++) colors.push([parseInt(Math.random() * 255, 10), parseInt(Math.random() * 255, 10), parseInt(Math.random() * 255, 10), 255]);
             for(let i = 0; i < h; i++){
                let color = parseInt(Math.random() * 255, 10);
