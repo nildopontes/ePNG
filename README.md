@@ -25,7 +25,7 @@ Imagem ilustrativa gerada com ePNG
 
 O método **encode()** retorna uma Promise que resolve com um Blob contendo os dados binários da imagem, que pode ser transmitido pela rede ou exibido na própria página.
 
-O codificador escolhe o tipo de cor com base na análise do canal alpha, quantidade e tipo de corea nas amostras passadas para o construtor. A compressão Zlib é fornecida pela Compression Streams API. Esta API Javascript conta com ampla compatibilidade nos navegadores modernos.
+O codificador escolhe o tipo de cor com base na análise do canal alpha, quantidade e tipo de cores nas amostras passadas para o construtor. A compressão Zlib é fornecida pela Compression Streams API. Esta API Javascript conta com ampla compatibilidade nos navegadores modernos.
 
 Veja um exemplo comparativo de resultados com tipos de filtro diferentes. Leve em conta que o tipo de imagem influencia diretamente na eficiência da filtragem e consequente compactação.
 
