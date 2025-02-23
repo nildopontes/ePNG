@@ -135,10 +135,8 @@ class ePNG {
    }
    filter0(){
       let i, j, count = 0;
-      for(i = 0; i < this.scanlines.length; i++){
-         this.scanlines[i] = new Uint8Array(this.widthScanline);
-      }
       for(i = 0; i < this.h; i++){
+         this.scanlines[i] = new Uint8Array(this.widthScanline);
          for(let j = 1; j < this.widthScanline; j++){
             this.scanlines[i][j] = this.data[count];
             count++;
@@ -225,8 +223,8 @@ class ePNG {
    }
    getCRC32(data){
       let crc = -1;
-      data.map(v => crc = (crc >>> 8) ^ this.crcTable[(crc ^ v) & 255]);
-      return (crc ^ (-1)) >>> 0;
+      data.map(v => crc = crc >>> 8 ^ this.crcTable[(crc ^ v) & 255]);
+      return crc ^ -1 >>> 0;
    }
    compress(input){
      const cs = new CompressionStream('deflate');
