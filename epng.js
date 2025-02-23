@@ -117,7 +117,7 @@ class ePNG {
       this.palette.set(this.set32bit(this.getCRC32(this.palette.slice(4, 8 + colors.size * 3))), 8 + colors.size * 3);
    }
    dump32bit(a, b, c, d){
-      return Number((BigInt(a) << 24n) + (BigInt(b) << 16n) + (BigInt(c) << 8n) + BigInt(d));
+      return (a << 24) + (b << 16) + (c << 8) + d;
    }
    set32bit(v){
      return new Uint8Array([v >> 24 & 255, v >> 16 & 255, v >> 8 & 255, v & 255]);
