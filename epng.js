@@ -123,9 +123,9 @@ class ePNG {
    }
    makeCRCTable(){
       let c, a = [];
-      for(var n = 0; n < 256; n++){
+      for(let n = 0; n < 256; n++){
          c = n;
-         for(var k = 0; k < 8; k++){
+         for(let k = 0; k < 8; k++){
             c = c & 1 ? 0xEDB88320 ^ c >>> 1 : c >>> 1;
          }
          a.push(c);
@@ -227,7 +227,7 @@ class ePNG {
    encode(){
       return new Promise((resolve, reject) => {
          this.compress(this.filter0()).then(c => {
-            var cp = new Uint8Array(c);
+            let cp = new Uint8Array(c);
             this.idat = new Uint8Array(cp.length + 12);
             this.idat.set(this.set32bit(cp.length));
             this.idat.set([73, 68, 65, 84], 4);
