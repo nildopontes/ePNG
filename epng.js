@@ -13,7 +13,6 @@ class ePNG {
       this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
       this.filter = this.colorType == 3 ? 0 : ([0, 1, 2, 3, 4].includes(filter) ? filter : 5);
-      this.scanlines = new Array(h);
       this.buffer = new Uint8Array((w * h * this.pixelSize) + h);
    }
    indexOf(colors, int32){
@@ -127,22 +126,18 @@ class ePNG {
       for(var n = 0; n < 256; n++){
          c = n;
          for(var k = 0; k < 8; k++){
-            c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+            c = c & 1 ? 0xEDB88320 ^ c >>> 1 : c >>> 1;
          }
          a.push(c);
       }
       this.crcTable = a;
    }
    filter0(){
-      let i, j, count = 0;
-      for(i = 0; i < this.h; i++){
-         this.scanlines[i] = new Uint8Array(this.widthScanline);
-         for(let j = 1; j < this.widthScanline; j++){
-            this.scanlines[i][j] = this.data[count];
-            count++;
-         }
+      this.scanlines = [];
+      for(let i = 0; i < this.h; i++){
+         this.scanlines.push(new Uint8Array([0, ...this.data.slice(i * this.w * this.pixelSize, (i + 1) * this.w * this.pixelSize)]));
       }
-      for(i = this.h - 1; i >= 0; i--){
+      for(let i = this.h - 1; i >= 0; i--){
          if(this.filter == 5){
             let minSum = Number.MAX_VALUE, realFilter, aux = [];
             for(let ft = 0; ft < 5; ft++){
@@ -156,14 +151,10 @@ class ePNG {
          }else{
             this.scanlines[i] = this.filterScanline(this.filter, i);
          }
-      }
-      count = 0;
-      for(i = 0; i < this.h; i++){
-         for(j = 0; j < this.widthScanline; j++){
-            this.buffer[count] = this.scanlines[i][j];
-            count++;
-         }
-      }
+      }      
+      this.scanlines.map((v, i) => {
+         this.buffer.set(v, this.widthScanline * i);
+      });
       return this.buffer;
    }
    paeth(a, b, c){
