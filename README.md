@@ -29,7 +29,4 @@ O codificador escolhe o tipo de cor com base na análise do canal alpha, quantid
 
 Veja um exemplo comparativo de resultados com tipos de filtro diferentes. Leve em conta que o tipo de imagem influencia diretamente na eficiência da filtragem e consequente compactação.
 
-[Exemplos comparativos](https://nildopontes.com.br/ePNG/examples1.html)
-
-
-[Gerando imagem de paleta](https://nildopontes.com.br/ePNG/examples2.html)
+[Demonstração de uso online](https://nildopontes.com.br/ePNG/examples.html)
