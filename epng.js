@@ -10,7 +10,7 @@ class ePNG {
       this.widthScanline =  (w * this.pixelSize) + 1;
       this.signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
       this.ihdr = new Uint8Array([0, 0, 0, 13, 73, 72, 68, 82, ...this.set32bit(w), ...this.set32bit(h), 8, this.colorType, 0, 0, 0, 0, 0, 0, 0]);
-      this.ihdr.set(this.set32bit(this.getCRC32(this.ihdr.slice(4, 21))), 21);
+      this.ihdr.set(this.getCRC32(this.ihdr.slice(4, 21)), 21);
       this.iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
       this.filter = this.colorType == 3 ? 0 : ([0, 1, 2, 3, 4].includes(filter) ? filter : 5);
       this.buffer = new Uint8Array((w * h * this.pixelSize) + h);
@@ -82,14 +82,14 @@ class ePNG {
          case 0:{
             this.trns = new Uint8Array(14);
             this.trns.set([2, 116, 82, 78, 83, 0, this.set32bit(trns).slice(0, 1)], 3);
-            this.trns.set(this.set32bit(this.getCRC32(this.trns.slice(4, 10))), 10);
+            this.trns.set(this.getCRC32(this.trns.slice(4, 10)), 10);
             break;
          }
          case 2:{
             this.trns = new Uint8Array(18);
             let rgb = this.set32bit(trns);
             this.trns.set([6, 116, 82, 78, 83, 0, rgb[0], 0, rgb[1], 0, rgb[2]], 3);
-            this.trns.set(this.set32bit(this.getCRC32(this.trns.slice(4, 14))), 14);
+            this.trns.set(this.getCRC32(this.trns.slice(4, 14)), 14);
             break;
          }
          case 3:{
@@ -100,7 +100,7 @@ class ePNG {
             for(let i = 0; i < trns.size; i++){
                this.trns[8 + i] = this.set32bit(iterator.next().value).slice(3);
             }
-            this.trns.set(this.set32bit(this.getCRC32(this.trns.slice(4, 8 + trns.size))), 8 + trns.size);
+            this.trns.set(this.getCRC32(this.trns.slice(4, 8 + trns.size)), 8 + trns.size);
             break;
          }
       }
@@ -113,7 +113,7 @@ class ePNG {
       for(let i = 0; i < colors.size; i++){
          this.palette.set(this.set32bit(iterator.next().value).slice(0, 3), 8 + i * 3);
       }
-      this.palette.set(this.set32bit(this.getCRC32(this.palette.slice(4, 8 + colors.size * 3))), 8 + colors.size * 3);
+      this.palette.set(this.getCRC32(this.palette.slice(4, 8 + colors.size * 3)), 8 + colors.size * 3);
    }
    dump32bit(a, b, c, d){
       return (a << 24) + (b << 16) + (c << 8) + d;
@@ -215,22 +215,20 @@ class ePNG {
    getCRC32(data){
       let crc = -1;
       data.map(v => crc = crc >>> 8 ^ this.crcTable[(crc ^ v) & 255]);
-      return crc ^ -1 >>> 0;
+      return this.set32bit(crc ^ -1 >>> 0);
    }
    compress(input){
      let cs = new CompressionStream('deflate');
      let writer = cs.writable.getWriter();
      writer.write(input);
      writer.close();
-     return new Response(cs.readable).arrayBuffer();
+     return new Response(cs.readable).bytes();
    }
    encode(){
       return new Promise((resolve, reject) => {
          this.compress(this.filter0()).then(c =>
-            this.idat = new Uint8Array([...this.set32bit(c.byteLength), 73, 68, 65, 84, ...new Uint8Array(c), 0, 0, 0, 0]);
-            this.idat.set(this.set32bit(this.getCRC32(this.idat.slice(4, 8 + c.byteLength))), c.byteLength + 8);
-            this.blob = new Blob([this.signature, this.ihdr, this.palette || [], this.trns || [], this.idat, this.iend], {type: "image/png"});
-            resolve(this.blob);
+            this.idat = new Uint8Array([...this.set32bit(c.length), 73, 68, 65, 84, ...c, ...this.getCRC32([73, 68, 65, 84, ...c])]);
+            resolve(new Blob([this.signature, this.ihdr, this.palette || [], this.trns || [], this.idat, this.iend], {type: "image/png"}));
          });
       });
    }
