@@ -218,21 +218,17 @@ class ePNG {
       return crc ^ -1 >>> 0;
    }
    compress(input){
-     const cs = new CompressionStream('deflate');
-     const writer = cs.writable.getWriter();
+     let cs = new CompressionStream('deflate');
+     let writer = cs.writable.getWriter();
      writer.write(input);
      writer.close();
      return new Response(cs.readable).arrayBuffer();
    }
    encode(){
       return new Promise((resolve, reject) => {
-         this.compress(this.filter0()).then(c => {
-            let cp = new Uint8Array(c);
-            this.idat = new Uint8Array(cp.length + 12);
-            this.idat.set(this.set32bit(cp.length));
-            this.idat.set([73, 68, 65, 84], 4);
-            this.idat.set(cp, 8);
-            this.idat.set(this.set32bit(this.getCRC32(this.idat.slice(4, 8 + cp.length))), cp.length + 8);
+         this.compress(this.filter0()).then(c =>
+            this.idat = new Uint8Array([...this.set32bit(c.byteLength), 73, 68, 65, 84, ...new Uint8Array(c), 0, 0, 0, 0]);
+            this.idat.set(this.set32bit(this.getCRC32(this.idat.slice(4, 8 + c.byteLength))), c.byteLength + 8);
             this.blob = new Blob([this.signature, this.ihdr, this.palette || [], this.trns || [], this.idat, this.iend], {type: "image/png"});
             resolve(this.blob);
          });
