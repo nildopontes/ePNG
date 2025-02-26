@@ -119,7 +119,7 @@ class ePNG {
       return (a << 24) + (b << 16) + (c << 8) + d;
    }
    set32bit(v){
-     return new Uint8Array([v >> 24 & 255, v >> 16 & 255, v >> 8 & 255, v & 255]);
+     return [v >> 24 & 255, v >> 16 & 255, v >> 8 & 255, v & 255];
    }
    makeCRCTable(){
       let c, a = [];
@@ -226,7 +226,7 @@ class ePNG {
    }
    encode(){
       return new Promise((resolve, reject) => {
-         this.compress(this.filter0()).then(c =>
+         this.compress(this.filter0()).then(c => {
             this.idat = new Uint8Array([...this.set32bit(c.length), 73, 68, 65, 84, ...c, ...this.getCRC32([73, 68, 65, 84, ...c])]);
             resolve(new Blob([this.signature, this.ihdr, this.palette || [], this.trns || [], this.idat, this.iend], {type: "image/png"}));
          });
